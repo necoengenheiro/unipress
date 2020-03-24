@@ -8,7 +8,7 @@ yum.define([
         instances() {
             super.instances();
 
-            this._streamerPromise = new Pi.Promise();
+            this._localStreammer = new Pi.Promise();
 
             this.event = new Pi.Event();
             this.groupName = 'unknow';
@@ -26,7 +26,7 @@ yum.define([
         }
 
         setStreamer(streamer){
-            this._streamerPromise.resolve(streamer);
+            this._localStreammer.resolve(streamer);
         }
 
         setNewMaster(masterId){
@@ -90,9 +90,14 @@ yum.define([
                 if (!this.isMaster) return;
 
                 this.peer = new Asterisk.Peer(this.clientId, slaver.id);
-                this.signal.sendTo(slaver.id, {
-                    type: 'asterisk.slaver.pairing.init',
-                    masterId: this.clientId
+
+                this._localStreammer.once((streamer) => {
+                    this.peer.setStreamer(streamer);
+
+                    this.signal.sendTo(slaver.id, {
+                        type: 'asterisk.slaver.pairing.init',
+                        masterId: this.clientId
+                    });
                 });
             });
 
@@ -107,10 +112,7 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.master.connect', () => {
-                this._streamerPromise.once((streamer) => {
-                    this.peer.setStreamer(streamer);
-                    this.peer.connect();
-                })
+                this.peer.connect();
             });
         }
     };

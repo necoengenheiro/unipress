@@ -1,5 +1,5 @@
 yum.define([
-    
+
 ], function () {
 
     class Streamer extends Pi.Class {
@@ -79,13 +79,6 @@ yum.define([
         _initConnection(servers) {
             if (servers == null) servers = this.config.servers;
             this._peer = new RTCPeerConnection({ 'iceServers': servers });
-            this._peer.onconnectionstatechange = (e) => {
-                if (e.type == 'connectionstatechange') {
-                    if (this._peer.connectionState == 'disconnected') {
-                        this.close();
-                    }
-                }
-            }
         }
 
         _listenPeers() {
@@ -95,6 +88,14 @@ yum.define([
                     type: 'peer.candidate',
                     data: evt.candidate
                 });
+            }
+
+            this._peer.onconnectionstatechange = (e) => {
+                if (e.type == 'connectionstatechange') {
+                    if (this._peer.connectionState == 'disconnected') {
+                        this.close();
+                    }
+                }
             }
 
             this._peer.ontrack = (evt) => {
@@ -126,7 +127,7 @@ yum.define([
                     });
                 } else if (message.type == 'peer.candidate') {
                     this._peer.addIceCandidate(new RTCIceCandidate(message.data), (e) => {
-                        
+
                     }, (e) => {
                         this.event.trigger('critical', e);
                     });
