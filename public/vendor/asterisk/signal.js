@@ -1,0 +1,180 @@
+yum.define([
+
+], function () {
+
+    class Signal extends Pi.Class {
+
+        instances() {
+            super.instances();
+
+            this.event = new Pi.Event();
+            this.isConnected = false;
+            
+            this._fnMessages = [];
+            this._promise = new Pi.Promise();
+        }
+
+        init(url) {
+            this.url = url;
+
+            this._configure();
+            this._connect();
+        }
+
+        waitConnection() {
+            return this._promise;
+        }
+
+        enterGroup(group) {
+            this._send(-1, {}, {
+                type: 'asterisk.entergroup',
+                groupName: group
+            });
+        }
+
+        leaveGroup() {
+            this._send(-1, {}, {
+                type: 'asterisk.leavegroup'
+            });
+        }
+
+        sendTo(id, message) {
+            this._send(id, message, {
+                type: 'asterisk.unicast'
+            });
+        }
+
+        broadcast(message) {
+            this._send('*', message, {
+                type: 'asterisk.broadcast',
+                from: this.id,
+            });
+        }
+
+        onecast(group, message) {
+            this._send(`*`, message, {
+                type: 'asterisk.onecast',
+                from: this.id,
+                group: group
+            });
+        }
+
+        receive(fn) {
+            const cb = (evt) => {
+                var message = JSON.parse(evt.data);
+
+                if (message.data) {
+                    fn(message.data, message.from);
+                }
+            };
+
+            this._fnMessages.push(cb);
+            this._ws.addEventListener('message', cb);
+        }
+
+        _configure() {
+            this._onMessage();
+        }
+
+        _connect() {
+            this._tryConnect(this.url);
+        }
+
+        _tryConnect(url) {
+            this._ws = new WebSocket(url);
+            
+            this._listen();
+        }
+
+        _listen() {
+            this._unlisten();
+
+            this._onOpen = () => {
+
+            };
+
+            this._onClose = () => {
+                if (this.isConnected) {
+                    this.event.trigger('disconnected');
+                }
+
+                this.isConnected = false;
+                this._connect();
+            };
+
+            this._onError = (e) => {
+                setTimeout(() => {
+                    this._unlisten();
+                    this._ws = null;
+                    this._connect();
+                }, 3000);
+            };
+
+            this._ws.addEventListener('open', this._onOpen);
+            this._ws.addEventListener('close', this._onClose);
+            this._ws.addEventListener('error', this._onError);
+
+            this._restoreOnMessage();
+        }
+
+        _unlisten() {
+            if (this._onOpen) this._ws.removeEventListener('open', this._onOpen);
+            if (this._onClose) this._ws.removeEventListener('close', this._onClose);
+            if (this._onError) this._ws.removeEventListener('error', this._onError);
+
+            for (let i = 0; i < this._fnMessages.length; i++) {
+                this._ws.removeEventListener('message', this._fnMessages[i]);
+            }
+        }
+
+        _restoreOnMessage() {
+            for (let i = 0; i < this._fnMessages.length; i++) {
+                this._ws.addEventListener('message', this._fnMessages[i]);
+            }
+        }
+
+        _send(id, message, params = {}) {
+            params.to = id;
+            params.from = this.id
+            params.data = message
+
+            if (this._ws.readyState == this._ws.OPEN) {
+                this._ws.send(JSON.stringify(params));
+            }
+        }
+
+        _onMessage() {
+            const cb = (evt) => {
+                var message = JSON.parse(evt.data);
+
+                if (message.type == 'asterisk.initialize' && !this.isConnected) {
+                    this.id = message.id;
+
+                    this.isConnected = true;
+                    this._promise.resolve();
+
+                    this.event.trigger('connected');
+                    return;
+                } else if (message.type == 'asterisk.client.disconnected') {
+                    this.event.trigger('client.disconnected', {
+                        id: message.from
+                    });
+                } else if (message.type == 'asterisk.entergroup') {
+                    this.event.trigger('enter::group', {
+                        id: message.from
+                    })
+                } else if (message.type == 'asterisk.leavegroup') {
+                    this.event.trigger('leave::group', {
+                        id: message.from
+                    })
+                } else if (Pi.Object.extractValue(message, 'data.type')) {
+                    this.event.trigger(message.data.type, message.data, message.from);
+                }
+            };
+
+            this._fnMessages.push(cb);
+        }
+    };
+
+    Pi.Export('Asterisk.Signal', Signal);
+});
