@@ -18,10 +18,14 @@ yum.define([
 
         viewDidLoad() {
             this.streamer = new Camera.Streamer();
+            
             this.camera = new Camera.View();
-
             this.camera.render(this.view.element);
+
             this.hub.setStreamer(this.streamer);
+            this.hub.event.listen('new::streamming', (streamer) => {
+                this.camera.setStreamer(streamer);
+            });
 
             if (this.isAdmin) {
                 this.hub.isMaster = true;
@@ -29,10 +33,6 @@ yum.define([
                 this.streamer.start();
                 
                 this.camera.setStreamer(this.streamer);
-            } else {
-                this.hub.event.listen('new::streamming', (streamer) => {
-                    this.camera.setStreamer(streamer);
-                })
             }
 
             super.viewDidLoad();

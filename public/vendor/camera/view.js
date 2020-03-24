@@ -37,6 +37,7 @@ yum.define([
         setStreamer(streamer) {
             streamer.getStream().once((stream) => {
                 this.view.video.srcObject = stream;
+                this.view.video.pause();
                 var promise = this.view.video.play();
 
                 if (promise != undefined) {
