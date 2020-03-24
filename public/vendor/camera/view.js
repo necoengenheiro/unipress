@@ -11,6 +11,12 @@ yum.define([
             this.autoplay = true;
         }
 
+        viewDidLoad(){
+            this._createVideoElement();
+            
+            super.viewDidLoad();
+        }
+
         _createVideoElement() {
             if (this._video) {
                 this._video.remove();
@@ -30,8 +36,6 @@ yum.define([
 
         setStreamer(streamer) {
             streamer.get().once((stream) => {
-                this._createVideoElement();
-
                 this._video.srcObject = stream;
                 var promise = this._video.play();
 
