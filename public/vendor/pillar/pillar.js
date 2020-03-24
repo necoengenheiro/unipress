@@ -1338,6 +1338,15 @@ Pi.Namespace('Pi.Promise', class pipromise extends Pi.Class {
         return this;
     }
 
+    onceReady(cb, context){
+        if (this.isOk) {
+            this.cbOnce.push({ cb: cb, context: context });
+            this.callOnce();
+        }
+
+        return this;
+    }
+
     error(cb, context) {
         this.cbErr.push({ cb: cb, context: context });
 

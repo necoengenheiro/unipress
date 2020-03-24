@@ -35,7 +35,7 @@ yum.define([
         }
 
         setStreamer(streamer) {
-            streamer.get().once((stream) => {
+            streamer.getStream().once((stream) => {
                 this.view.video.srcObject = stream;
                 var promise = this.view.video.play();
 

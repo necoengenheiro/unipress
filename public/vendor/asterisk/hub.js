@@ -8,7 +8,7 @@ yum.define([
         instances() {
             super.instances();
 
-            this._localStreammer = new Pi.Promise();
+            this._localStreammerPromise = new Pi.Promise();
 
             this.event = new Pi.Event();
             this.groupName = 'unknow';
@@ -25,11 +25,11 @@ yum.define([
             this._setNewMasterNegociation();
         }
 
-        setStreamer(streamer){
-            this._localStreammer.resolve(streamer);
+        setStreamer(streamer) {
+            this._localStreammerPromise.resolve(streamer);
         }
 
-        setNewMaster(masterId){
+        setNewMaster(masterId) {
             this._changeMaster(masterId);
         }
 
@@ -49,11 +49,11 @@ yum.define([
         }
 
         _reconnectMasterNegociation() {
-            
+
         }
 
         _reconnectSlaverNegociation() {
-            
+
         }
 
         _setNewMasterNegociation() {
@@ -78,9 +78,14 @@ yum.define([
             this.signal.event.listen('asterisk.master.pairing.init', (message) => {
                 this.peer = new Asterisk.Peer(this.clientId, message.slaverId);
 
-                this.signal.sendTo(message.slaverId, {
-                    type: 'asterisk.slaver.pairing.init',
-                    masterId: this.clientId
+                this._localStreammerPromise.once((streamer) => {
+                    streamer.stop().start();
+                    this.peer.setStreamer(streamer);
+
+                    this.signal.sendTo(message.slaverId, {
+                        type: 'asterisk.slaver.pairing.init',
+                        masterId: this.clientId
+                    });
                 });
             })
         }
@@ -91,7 +96,7 @@ yum.define([
 
                 this.peer = new Asterisk.Peer(this.clientId, slaver.id);
 
-                this._localStreammer.once((streamer) => {
+                this._localStreammerPromise.once((streamer) => {
                     this.peer.setStreamer(streamer);
 
                     this.signal.sendTo(slaver.id, {
@@ -106,7 +111,7 @@ yum.define([
                 this.signal.sendTo(message.masterId, {
                     type: 'asterisk.master.connect'
                 });
-                
+
                 // LOAD STREAMMING
                 this.event.trigger('new::streamming', this.peer.getStreamer());
             });

@@ -66,7 +66,7 @@ yum.define([
         }
 
         setStreamer(streamer) {
-            streamer.get().once((stream) => {
+            streamer.getStream().once((stream) => {
                 stream.getTracks().forEach((track) => {
                     this._peer.addTrack(track, stream);
                 })

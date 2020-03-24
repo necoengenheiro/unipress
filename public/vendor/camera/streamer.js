@@ -12,7 +12,7 @@ yum.define([
             });
         }
 
-        create(audio = true, video = true) {
+        start(audio = true, video = true) {
             let constraints = {}
 
             if (Pi.Type.isObject(video) && video.id) Pi.Object.extend(constraints, { video: { deviceId: { exact: video.id } } });
@@ -29,13 +29,22 @@ yum.define([
                     this._promise.resolve(stream);
                 })
                 .catch((e) => {
+                    console.log(e);
                     this.event.trigger('critical', e);
                 });
 
-            return this._promise;
+            return this;
         }
 
-        get() {
+        stop() {
+            this._promise.onceReady((stream) => {
+                stream.getTracks().forEach(track => track.stop());
+            })
+
+            return this;
+        }
+
+        getStream() {
             return this._promise;
         }
     };
