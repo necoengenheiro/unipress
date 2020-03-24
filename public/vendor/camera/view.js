@@ -18,7 +18,7 @@ yum.define([
 
             this._video = document.createElement('video');
             if (this.muted) {
-                this._video.setAttribute('muted', true);
+                this._video.setAttribute('muted', 'muted');
             }
 
             if (this.autoplay) {
