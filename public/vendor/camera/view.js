@@ -43,18 +43,23 @@ yum.define([
             streamer.getStream().once((stream) => {
                 this._createVideoElement();
 
-                this._video.srcObject = stream;
-                this._video.pause();
-                var promise = this._video.play();
-
-                if (promise != undefined) {
-                    promise.then(() => {
-
-                    }).catch((e) => {
-                        console.log(e);
-                        this.event.trigger('critial', e);
-                    });
+                if ('srcObject' in this._video) {
+                    this._video.srcObject = stream;
+                  } else {
+                    this._video.src = URL.createObjectURL(mediaStream);
                 }
+                
+                // this._video.pause();
+                // var promise = this._video.play();
+
+                // if (promise != undefined) {
+                //     promise.then(() => {
+
+                //     }).catch((e) => {
+                //         console.log(e);
+                //         this.event.trigger('critial', e);
+                //     });
+                // }
             });
         }
 
