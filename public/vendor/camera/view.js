@@ -12,7 +12,7 @@ yum.define([
             this.loop = true;
         }
 
-        viewDidLoad(){
+        viewDidLoad() {
             this._createVideoElement();
 
             super.viewDidLoad();
@@ -31,9 +31,13 @@ yum.define([
             if (this.autoplay) {
                 this._video.setAttribute('autoplay', '');
             }
-            
+
             if (this.loop) {
                 this._video.setAttribute('loop', '');
+            }
+
+            this._video.onloadedmetadata = () => {
+                this._video.play();
             }
 
             this.view.element.appendChild(this._video);
@@ -45,10 +49,10 @@ yum.define([
 
                 if ('srcObject' in this._video) {
                     this._video.srcObject = stream;
-                  } else {
+                } else {
                     this._video.src = URL.createObjectURL(mediaStream);
                 }
-                
+
                 // this._video.pause();
                 // var promise = this._video.play();
 
