@@ -11,7 +11,7 @@ yum.define([
             this._promise = promise;
         }
 
-        get() {
+        getStream() {
             return this._promise;
         }
 

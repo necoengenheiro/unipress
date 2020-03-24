@@ -108,17 +108,17 @@ yum.define([
 
             this.signal.event.listen('asterisk.slaver.pairing.init', (message) => {
                 this.peer = new Asterisk.Peer(message.masterId, this.clientId);
-                this.signal.sendTo(message.masterId, {
-                    type: 'asterisk.master.connect'
-                });
+                // this.signal.sendTo(message.masterId, {
+                //     type: 'asterisk.master.connect'
+                // });
 
                 // LOAD STREAMMING
                 this.event.trigger('new::streamming', this.peer.getStreamer());
             });
 
-            this.signal.event.listen('asterisk.master.connect', () => {
-                // this.peer.connect();
-            });
+        //     this.signal.event.listen('asterisk.master.connect', () => {
+        //         this.peer.connect();
+        //     });
         }
     };
 
