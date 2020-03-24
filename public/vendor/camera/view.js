@@ -8,7 +8,7 @@ yum.define([
             this.view = new Pi.View(`<div></div>`);
 
             this.muted = true;
-            this.autoplay = false;
+            this.autoplay = true;
         }
 
         _createVideoElement() {
@@ -18,11 +18,11 @@ yum.define([
 
             this._video = document.createElement('video');
             if (this.muted) {
-                this._video.setAttribute('muted', 'muted');
+                this._video.setAttribute('muted', '1');
             }
 
             if (this.autoplay) {
-                this._video.setAttribute('autoplay', true);
+                this._video.setAttribute('autoplay', '');
             }
 
             this.view.element.appendChild(this._video);
