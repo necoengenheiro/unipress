@@ -24,6 +24,7 @@ yum.define([
 
             this.event = new Pi.Event();
 
+            this._iceCanditates = [];
             this._promise = new Pi.Promise();
             this._promiseConnect = new Pi.Promise();
 
@@ -114,6 +115,10 @@ yum.define([
                         if (this._peer.remoteDescription.type === 'offer') {
                             this._peer.createAnswer().then((answer) => {
                                 this._peer.setLocalDescription(answer, () => {
+                                    for (let i = 0; i < this._iceCanditates.length; i++) {
+                                        this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i]));
+                                    }
+
                                     Asterisk.Hub.signal.sendTo(this.A, {
                                         type: 'peer.sdp',
                                         data: this._peer.localDescription
@@ -130,11 +135,7 @@ yum.define([
 
                     });
                 } else if (message.type == 'peer.candidate') {
-                    this._peer.addIceCandidate(new RTCIceCandidate(message.data), (e) => {
-
-                    }, (e) => {
-                        this.event.trigger('critical', e);
-                    });
+                    this._iceCanditates.push(message.data);
                 }
             });
         }
