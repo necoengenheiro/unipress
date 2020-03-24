@@ -5,15 +5,15 @@ yum.define([
     class Control extends Pi.Component {
 
         instances() {
-            this.view = new Pi.View(`<div></div>`);
+            this.view = new Pi.View(`<div><video at="video" loop muted autoplay></video></div>`);
 
             this.muted = true;
             this.autoplay = true;
         }
 
         viewDidLoad(){
-            this._createVideoElement();
-            
+            // this._createVideoElement();
+
             super.viewDidLoad();
         }
 
@@ -36,8 +36,8 @@ yum.define([
 
         setStreamer(streamer) {
             streamer.get().once((stream) => {
-                this._video.srcObject = stream;
-                var promise = this._video.play();
+                this.view.video.srcObject = stream;
+                var promise = this.view.video.play();
 
                 if (promise != undefined) {
                     promise.then(() => {
