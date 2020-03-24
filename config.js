@@ -27,7 +27,7 @@ Pi.App.config({
 
     asterisk: {
         signal: {
-            url: 'ws://localhost:775'
+            url: 'wss://test.galileu.space:775'
         }
     },
 

@@ -1,8 +1,17 @@
 const WebSocketServer = require('ws').Server;
+const https = require('https');
+const fs = require('fs');
+
+const pkey  = fs.readFileSync('/etc/letsencrypt/live/test.galileu.space/privkey.pem');
+const pcert = fs.readFileSync('/etc/letsencrypt/live/test.galileu.space/fullchain.pem');
 
 const wss = new WebSocketServer({
-    port: 775
+    server: https.createServer({ key: pkey, cert: pcert }).listen(775)
 });
+
+// const wss = new WebSocketServer({
+//     port: 775
+// });
 
 var clientIncrement = 1;
 
