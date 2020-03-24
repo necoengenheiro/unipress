@@ -5,14 +5,15 @@ yum.define([
     class Control extends Pi.Component {
 
         instances() {
-            this.view = new Pi.View(`<div><video at="video" loop muted autoplay></video></div>`);
+            this.view = new Pi.View(`<div></div>`);
 
             this.muted = true;
             this.autoplay = true;
+            this.loop = true;
         }
 
         viewDidLoad(){
-            // this._createVideoElement();
+            this._createVideoElement();
 
             super.viewDidLoad();
         }
@@ -30,20 +31,27 @@ yum.define([
             if (this.autoplay) {
                 this._video.setAttribute('autoplay', '');
             }
+            
+            if (this.loop) {
+                this._video.setAttribute('loop', '');
+            }
 
             this.view.element.appendChild(this._video);
         }
 
         setStreamer(streamer) {
             streamer.getStream().once((stream) => {
-                this.view.video.srcObject = stream;
-                this.view.video.pause();
-                var promise = this.view.video.play();
+                this._createVideoElement();
+
+                this._video.srcObject = stream;
+                this._video.pause();
+                var promise = this._video.play();
 
                 if (promise != undefined) {
                     promise.then(() => {
 
                     }).catch((e) => {
+                        console.log(e);
                         this.event.trigger('critial', e);
                     });
                 }

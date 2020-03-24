@@ -64,6 +64,11 @@ yum.define([
                     type: 'asterisk.slaver.change.master.init',
                     masterId: this.clientId
                 });
+
+                // LOAD STREAMMING
+                this._localStreammerPromise.once((streamer) => {
+                    this.event.trigger('new::streamming', streamer);
+                })
             });
 
             this.signal.event.listen('asterisk.slaver.change.master.init', (message) => {
@@ -116,9 +121,9 @@ yum.define([
                 this.event.trigger('new::streamming', this.peer.getStreamer());
             });
 
-        //     this.signal.event.listen('asterisk.master.connect', () => {
-        //         this.peer.connect();
-        //     });
+            //     this.signal.event.listen('asterisk.master.connect', () => {
+            //         this.peer.connect();
+            //     });
         }
     };
 
