@@ -112,7 +112,7 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.master.connect', () => {
-                this.peer.connect();
+                // this.peer.connect();
             });
         }
     };

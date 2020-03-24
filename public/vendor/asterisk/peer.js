@@ -90,6 +90,10 @@ yum.define([
                 });
             }
 
+            this._peer.onnegotiationneeded = () => {
+                this.connect();
+            }
+
             this._peer.onconnectionstatechange = (e) => {
                 if (e.type == 'connectionstatechange') {
                     if (this._peer.connectionState == 'disconnected') {
