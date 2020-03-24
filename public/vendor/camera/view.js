@@ -33,15 +33,15 @@ yum.define([
                 this._createVideoElement();
 
                 this._video.srcObject = stream;
-                var promise = this._video.play();
+                // var promise = this._video.play();
 
-                if (promise != undefined) {
-                    promise.then(() => {
+                // if (promise != undefined) {
+                //     promise.then(() => {
 
-                    }).catch((e) => {
-                        this.event.trigger('critial', e);
-                    });
-                }
+                //     }).catch((e) => {
+                //         this.event.trigger('critial', e);
+                //     });
+                // }
             });
         }
 
