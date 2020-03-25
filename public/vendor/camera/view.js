@@ -22,25 +22,25 @@ yum.define([
             if (this._video) {
                 this._video.remove();
             }
-
+            
             this._video = document.createElement('video');
+            this.view.element.appendChild(this._video);
+
             if (this.muted) {
-                this._video.setAttribute('muted', '');
+                this._video.muted = true;
             }
 
             if (this.autoplay) {
-                this._video.setAttribute('autoplay', '');
+                this._video.autoplay = true;
             }
 
             if (this.loop) {
-                this._video.setAttribute('loop', '');
+                this._video.loop = true;
             }
 
             this._video.onloadedmetadata = () => {
                 this._video.play();
             }
-
-            this.view.element.appendChild(this._video);
         }
 
         setStreamer(streamer) {
