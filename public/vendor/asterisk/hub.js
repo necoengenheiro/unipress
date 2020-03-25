@@ -9,7 +9,8 @@ yum.define([
             super.instances();
 
             this._localStreammerPromise = new Pi.Promise();
-
+            
+            this.hook = new Pi.Hook();
             this.event = new Pi.Event();
             this.groupName = 'unknow';
             this.isMaster = false;
@@ -43,8 +44,9 @@ yum.define([
         _changeMaster(newMasterId) {
             this.isMaster = false;
 
-            if (this.peer) this.peer.close();
+            this.hook.invoke('stream::stop');
 
+            if (this.peer) this.peer.close();
             this._localStreammerPromise.once((streamer) => {
                 streamer.stop();
             });
@@ -68,6 +70,7 @@ yum.define([
 
                 // LOAD STREAMMING
                 this._localStreammerPromise.once((streamer) => {
+                    this.hook.invoke('stream::start');
                     if (streamer.status == Camera.StreamerStatus.STOPPED) {
                         streamer.start();
                     }
@@ -82,6 +85,7 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.slaver.change.master.init', (message) => {
+                this.hook.invoke('stream::stop');
                 this.peer = new Asterisk.Peer(message.masterId, this.clientId);
                 
                 this.signal.sendTo(message.masterId, {
@@ -119,17 +123,8 @@ yum.define([
 
             this.signal.event.listen('asterisk.slaver.pairing.init', (message) => {
                 this.peer = new Asterisk.Peer(message.masterId, this.clientId);
-                // this.signal.sendTo(message.masterId, {
-                //     type: 'asterisk.master.connect'
-                // });
-
-                // LOAD STREAMMING
                 this.event.trigger('new::streamming', this.peer.getStreamer());
             });
-
-            //     this.signal.event.listen('asterisk.master.connect', () => {
-            //         this.peer.connect();
-            //     });
         }
     };
 

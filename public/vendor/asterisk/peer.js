@@ -7,10 +7,6 @@ yum.define([
             super.instances();
         }
 
-        init(promise) {
-            this._promise = promise;
-        }
-
         getStream() {
             return this._promise;
         }
@@ -84,7 +80,9 @@ yum.define([
         }
 
         getStreamer() {
-            return new Streamer(this._promise);
+            return new Streamer({
+                _promise: this._promise
+            });
         }
 
         _initConnection(servers) {
