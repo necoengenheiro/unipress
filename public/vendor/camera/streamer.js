@@ -44,6 +44,8 @@ yum.define([
                 stream.getTracks().forEach(track => track.stop());
             })
 
+            this.status = Camera.StreamerStatus.STOPPED;
+
             return this;
         }
 
