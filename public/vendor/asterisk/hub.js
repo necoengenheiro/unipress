@@ -95,9 +95,13 @@ yum.define([
                 masterId: masterId
             });
 
-            this.signal.sendTo(masterId, {
-                type: 'asterisk.elected.newMaster'
-            });
+            if (this.clientId == masterId) {
+                this.signal.event.trigger('asterisk.elected.newMaster');
+            } else {
+                this.signal.sendTo(masterId, {
+                    type: 'asterisk.elected.newMaster'
+                });
+            }
         }
 
         _config() {
