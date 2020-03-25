@@ -40,12 +40,17 @@ yum.define([
             this._listenMessages();
         }
 
+        getId(){
+            return this.A + '-' + this.B;
+        }
+
         connect() {
             this._peer.createOffer((desc) => {
                 var offer = new RTCSessionDescription(desc);
                 this._peer.setLocalDescription(offer, () => {
                     Asterisk.Hub.signal.sendTo(this.B, {
                         type: 'peer.sdp',
+                        id: this.getId(),
                         data: this._peer.localDescription
                     });
                 });
@@ -95,6 +100,7 @@ yum.define([
                 if (!evt || !evt.candidate) return;
                 Asterisk.Hub.signal.sendTo(this.B, {
                     type: 'peer.candidate',
+                    id: this.getId(),
                     data: evt.candidate
                 });
             }
@@ -118,7 +124,7 @@ yum.define([
 
         _listenMessages() {
             this._fnMessages = (message) => {
-                if (message.type == 'peer.sdp') {
+                if (message.type == 'peer.sdp' && message.id == this.getId()) {
                     this._peer.setRemoteDescription(new RTCSessionDescription(message.data), () => {
                         if (this._peer.remoteDescription.type === 'offer') {
                             this._peer.createAnswer().then((answer) => {
@@ -130,6 +136,7 @@ yum.define([
 
                                         Asterisk.Hub.signal.sendTo(this.A, {
                                             type: 'peer.sdp',
+                                            id: this.getId(),
                                             data: this._peer.localDescription
                                         });
                                     }, 1000);
