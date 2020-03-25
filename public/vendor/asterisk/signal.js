@@ -60,7 +60,7 @@ yum.define([
         }
 
         receive(fn) {
-            const cb = (evt) => {
+            let cb = (evt) => {
                 var message = JSON.parse(evt.data);
 
                 if (message.data) {
@@ -68,8 +68,21 @@ yum.define([
                 }
             };
 
+            cb._id = fn._id = this._fnMessages.length + 1;
             this._fnMessages.push(cb);
             this._ws.addEventListener('message', cb);
+        }
+
+        unreceive(fn) {
+            if (fn == null) return;
+
+            for (let i = 0; i < this._fnMessages.length; i++) {
+                if (fn._id == this._fnMessages[i]._id) {
+                    this._ws.removeEventListener('message', this._fnMessages[i]);
+                    this._fnMessages.splice(i, 1);
+                    break;
+                }
+            }
         }
 
         _configure() {

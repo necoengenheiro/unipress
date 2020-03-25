@@ -43,6 +43,8 @@ yum.define([
         _changeMaster(newMasterId) {
             this.isMaster = false;
 
+            if (this.peer) this.peer.close();
+
             this._localStreammerPromise.once((streamer) => {
                 streamer.stop();
             });

@@ -63,7 +63,16 @@ yum.define([
 
         close() {
             this._peer.close();
-            this.event.trigger('disconnected');
+
+            this._promise.clear();
+            this._promiseConnect.clear();
+
+            this.event.clear();
+
+            Asterisk.Hub.signal.unreceive(this._fnMessages);
+
+            this._peer = null;
+            this.event.trigger('closed');
         }
 
         setStreamer(streamer) {
@@ -110,7 +119,7 @@ yum.define([
         }
 
         _listenMessages() {
-            Asterisk.Hub.signal.receive((message) => {
+            this._fnMessages = (message) => {
                 if (message.type == 'peer.sdp') {
                     this._peer.setRemoteDescription(new RTCSessionDescription(message.data), () => {
                         if (this._peer.remoteDescription.type === 'offer') {
@@ -141,7 +150,9 @@ yum.define([
                 } else if (message.type == 'peer.candidate') {
                     this._iceCanditates.push(message.data);
                 }
-            });
+            };
+
+            Asterisk.Hub.signal.receive(this._fnMessages);
         }
     };
 
