@@ -43,6 +43,10 @@ yum.define([
         _changeMaster(newMasterId) {
             this.isMaster = false;
 
+            this._localStreammerPromise.once((streamer) => {
+                streamer.stop();
+            });
+
             this.signal.sendTo(newMasterId, {
                 type: 'asterisk.slaver.set.newMaster'
             });
@@ -60,13 +64,17 @@ yum.define([
             this.signal.event.listen('asterisk.slaver.set.newMaster', () => {
                 this.isMaster = true;
 
-                this.signal.onecast(this.groupName, {
-                    type: 'asterisk.slaver.change.master.init',
-                    masterId: this.clientId
-                });
-
                 // LOAD STREAMMING
                 this._localStreammerPromise.once((streamer) => {
+                    if (Camera.StreamerStatus.STOPPED) {
+                        streamer.start();
+                    }
+                    
+                    this.signal.onecast(this.groupName, {
+                        type: 'asterisk.slaver.change.master.init',
+                        masterId: this.clientId
+                    });
+
                     this.event.trigger('new::streamming', streamer);
                 })
             });
@@ -84,7 +92,6 @@ yum.define([
                 this.peer = new Asterisk.Peer(this.clientId, message.slaverId);
 
                 this._localStreammerPromise.once((streamer) => {
-                    streamer.stop().start();
                     this.peer.setStreamer(streamer);
 
                     this.signal.sendTo(message.slaverId, {

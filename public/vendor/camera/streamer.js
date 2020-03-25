@@ -7,6 +7,8 @@ yum.define([
         instances() {
             super.instances();
 
+            this.status = Camera.StreamerStatus.STOPPED;
+
             this._promise = new Pi.Promise({
                 isOnce: true
             });
@@ -26,6 +28,7 @@ yum.define([
 
             navigator.mediaDevices.getUserMedia(constraints)
                 .then((stream) => {
+                    this.status = Camera.StreamerStatus.PLAYING;
                     this._promise.resolve(stream);
                 })
                 .catch((e) => {
@@ -50,5 +53,8 @@ yum.define([
     };
 
     Pi.Export('Camera.Streamer', Stream);
-
+    Pi.Export('Camera.StreamerStatus', {
+        PLAYING: 0,
+        STOPPED: 1
+    });
 });

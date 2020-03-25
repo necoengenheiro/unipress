@@ -27,15 +27,15 @@ yum.define([
             this.view.element.appendChild(this._video);
 
             if (this.muted) {
-                this._video.muted = true;
+                this._video.muted = this.muted;
             }
 
             if (this.autoplay) {
-                this._video.autoplay = true;
+                this._video.autoplay = this.autoplay;
             }
 
             if (this.loop) {
-                this._video.loop = true;
+                this._video.loop = this.loop;
             }
 
             this._video.onloadedmetadata = () => {
@@ -53,17 +53,16 @@ yum.define([
                     this._video.src = URL.createObjectURL(mediaStream);
                 }
 
-                // this._video.pause();
-                // var promise = this._video.play();
+                var promise = this._video.play();
 
-                // if (promise != undefined) {
-                //     promise.then(() => {
+                if (promise != undefined) {
+                    promise.then(() => {
 
-                //     }).catch((e) => {
-                //         console.log(e);
-                //         this.event.trigger('critial', e);
-                //     });
-                // }
+                    }).catch((e) => {
+                        console.log(e);
+                        this.event.trigger('critial', e);
+                    });
+                }
             });
         }
 
