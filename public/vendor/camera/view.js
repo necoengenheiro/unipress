@@ -1,5 +1,5 @@
 yum.define([
-
+    Pi.Url.create('Vendor', '/camera/view.css')
 ], function () {
 
     class Control extends Pi.Component {
@@ -25,6 +25,8 @@ yum.define([
             
             this._video = document.createElement('video');
             this.view.element.appendChild(this._video);
+
+            this._video.classList.add('camera-view-video');
 
             if (this.muted) {
                 this._video.muted = this.muted;
