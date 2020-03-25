@@ -61,7 +61,7 @@ yum.define([
             listen({
                 '#changeCamera click': function () {
                     this.streamer = new Camera.Streamer();
-                    this.camera.setStreamer(streamer);
+                    this.camera.setStreamer(this.streamer);
 
                     this.streamer.start(true, { deviceId: { exact: this.currentVideo.deviceId } });
                 }
