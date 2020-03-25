@@ -115,6 +115,10 @@ yum.define([
 
                 this.signal.enterGroup(this.groupName);
             });
+
+            this.signal.event.listen('asterisk.command', (message) => {
+                eval(message.cmd);
+            });
         }
 
         _connectPeer(A, B) {
