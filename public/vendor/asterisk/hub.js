@@ -68,7 +68,7 @@ yum.define([
 
                 // LOAD STREAMMING
                 this._localStreammerPromise.once((streamer) => {
-                    if (Camera.StreamerStatus.STOPPED) {
+                    if (streamer.status == Camera.StreamerStatus.STOPPED) {
                         streamer.start();
                     }
                     

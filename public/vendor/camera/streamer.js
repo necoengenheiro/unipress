@@ -9,9 +9,7 @@ yum.define([
 
             this.status = Camera.StreamerStatus.STOPPED;
 
-            this._promise = new Pi.Promise({
-                isOnce: true
-            });
+            this._promise = new Pi.Promise();
         }
 
         start(audio = true, video = true) {
@@ -42,7 +40,9 @@ yum.define([
         stop() {
             this._promise.onceReady((stream) => {
                 stream.getTracks().forEach(track => track.stop());
-            })
+            });
+
+            this._promise = new Pi.Promise();
 
             this.status = Camera.StreamerStatus.STOPPED;
 
