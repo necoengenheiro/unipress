@@ -25,7 +25,7 @@ yum.define([
             this.streamer = new Camera.Streamer();
             this.streamer.start();
 
-            this.camera.setStreamer(streamer);
+            this.camera.setStreamer(this.streamer);
 
             super.viewDidLoad();
         }
