@@ -11,13 +11,13 @@ yum.define([
             this._devices = [];
         }
 
-        load() {
+        static load() {
             var promise = new Pi.Promise();
 
             navigator.mediaDevices.enumerateDevices().then((devices) => {
                 this._devices = devices;
 
-                promise.resolve(devices);
+                promise.resolve(new Devices({ _devices: devices }));
             }).catch((e) => {
                 this.event.trigger('critical', e);
             });
@@ -25,11 +25,45 @@ yum.define([
             return promise;
         }
 
-        getAudioDevices() {
+        static getStream(constraints) {
+            const promise = new Pi.Promise();
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    promise.resolve(stream);
+                })
+                .catch((e) => {
+                    console.log(e);
+                    promise.reject(e);
+                });
+            
+            return promise;
+        }
+
+        static getDefault() {
+            const promise = new Pi.Promise();
+
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+                const audios = stream.getAudioTracks();
+                const videos = stream.getVideoTracks();
+
+                if (audios.length == 0 || videos.length == 0) {
+                    promise.resolve();
+
+                    return;
+                }
+
+                promise.resolve(audios[0], videos[0]);
+            });
+
+            return promise;
+        }
+
+        getAudios() {
             return this._getDevicesByType('audioinput');
         }
 
-        getVideoDevices() {
+        getVideos() {
             return this._getDevicesByType('videoinput');
         }
 
@@ -49,5 +83,4 @@ yum.define([
     };
 
     Pi.Export('Camera.Devices', Devices);
-
 });

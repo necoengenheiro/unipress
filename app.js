@@ -43,7 +43,44 @@ yum.define([
                 });
             });
 
+            this.initDeviceDefault();
+
             super.viewDidLoad();
+        }
+
+        initDeviceDefault(){
+            Camera.Devices.getDefault().once((audio, video) => {
+                this.currentAudio = audio;
+                this.currentVideo = video;
+            });
+
+            Camera.Devices.load().once((devices) => {
+                this._videoDevices = devices.getVideos();
+            });
+        }
+
+        toggleVideoDevice() {
+            var video = null;
+
+            for (let i = 0; i < this._videoDevices.length; i++) {
+                if (this.currentVideo.label == this._videoDevices[i].label) {
+                    continue;
+                }
+                
+                video = this._videoDevices[i]
+            }
+
+            return video;
+        }
+
+        events(listen){
+            super.events(listen);
+        
+            listen({
+                '#changeCamera click': function(){
+                    console.log(this.toggleVideoDevice());
+                }
+            });
         }
 
         /**

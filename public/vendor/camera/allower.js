@@ -4,30 +4,22 @@ yum.define([
 
     class Allower extends Pi.Class {
 
-        instances() {
-            this.event = new Pi.Event();
-
-            super.instances();
-        }
-
         static requestPermission() {
             var promise = new Pi.Promise();
 
-            navigator.mediaDevices.getUserMedia({
+            Camera.Devices.getStream({
                 audio: true,
                 video: true
-            }).then((stream) => {
+            }).once((stream) => {
                 stream.getTracks().forEach(track => track.stop());
 
                 promise.resolve();
-            }).catch((e) => {
+            }).error(() => {
                 promise.reject(e);
-                // this.event.trigger('critical', e);
-            });
-
+            })
+            
             return promise;
         }
-
     };
 
     Pi.Export('Camera.Allower', Allower);

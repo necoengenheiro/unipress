@@ -1,5 +1,5 @@
 yum.define([
-
+    Pi.Url.create('Vendor', '/camera/allower.js')
 ], function () {
 
     class Stream extends Pi.Class {
@@ -28,12 +28,12 @@ yum.define([
             if (Pi.Type.isBoolean(video)) Pi.Object.extend(constraints, { video: video });
             if (Pi.Type.isBoolean(audio)) Pi.Object.extend(constraints, { audio: audio });
 
-            navigator.mediaDevices.getUserMedia(constraints)
-                .then((stream) => {
+            Camera.Devices.getStream(constraints)
+                .once((stream) => {
                     this._status = Camera.StreamerStatus.PLAYING;
                     this._promise.resolve(stream);
                 })
-                .catch((e) => {
+                .error((e) => {
                     console.log(e);
                     this.event.trigger('critical', e);
                 });
