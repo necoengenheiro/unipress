@@ -65,7 +65,7 @@ yum.define([
                     this.streamer = new Camera.Streamer();
                     this.camera.setStreamer(this.streamer);
 
-                    this.streamer.start(true, { deviceId: { exact: this.currentVideo.deviceId } });
+                    this.streamer.start(true, { id: this.currentVideo.deviceId });
                 }
             });
         }
