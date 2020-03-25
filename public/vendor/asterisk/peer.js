@@ -63,6 +63,8 @@ yum.define([
         }
 
         close() {
+            if (this._peer == null) return;
+            
             this._peer.close();
 
             this._promise.clear();
