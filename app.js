@@ -17,38 +17,20 @@ yum.define([
         }
 
         viewDidLoad() {
-            this.streamer = new Camera.Streamer();
+            this.initDeviceDefault();
 
             this.camera = new Camera.View();
             this.camera.render(this.view.element);
 
-            this.hub.setStreamer(this.streamer);
-            this.hub.event.listen('new::streamming', (streamer) => {
-                this.camera.setStreamer(streamer);
-            });
+            this.streamer = new Camera.Streamer();
+            this.streamer.start();
 
-            if (this.isAdmin) {
-                this.hub.isRoot = true;
-                this.hub.isMaster = true;
-
-                this.streamer.start();
-
-                this.camera.setStreamer(this.streamer);
-            }
-
-            this.hub.connect(Pi.App.getConfig('asterisk.signal.url'));
-            this.hub.event.listen('claimToBe::newMaster', (slaverId) => {
-                this.hub.revokeMaster().once(() => {
-                    this.hub.electedNewMaster(slaverId);
-                });
-            });
-
-            this.initDeviceDefault();
+            this.camera.setStreamer(streamer);
 
             super.viewDidLoad();
         }
 
-        initDeviceDefault(){
+        initDeviceDefault() {
             Camera.Devices.getDefault().once((audio, video) => {
                 this.currentAudio = audio;
                 this.currentVideo = video;
@@ -66,22 +48,56 @@ yum.define([
                 if (this.currentVideo.label == this._videoDevices[i].label) {
                     continue;
                 }
-                
+
                 video = this._videoDevices[i]
             }
 
-            return video;
+            this.currentVideo = video || this.currentVideo;
         }
 
-        events(listen){
+        events(listen) {
             super.events(listen);
-        
+
             listen({
-                '#changeCamera click': function(){
-                    console.log(this.toggleVideoDevice());
+                '#changeCamera click': function () {
+                    this.streamer = new Camera.Streamer();
+                    this.camera.setStreamer(streamer);
+
+                    this.streamer.start(true, { deviceId: { exact: this.currentVideo.deviceId } });
                 }
             });
         }
+
+        // viewDidLoad() {
+        //     this.streamer = new Camera.Streamer();
+
+        //     this.camera = new Camera.View();
+        //     this.camera.render(this.view.element);
+
+        //     this.hub.setStreamer(this.streamer);
+        //     this.hub.event.listen('new::streamming', (streamer) => {
+        //         this.camera.setStreamer(streamer);
+        //     });
+
+        //     if (this.isAdmin) {
+        //         this.hub.isRoot = true;
+        //         this.hub.isMaster = true;
+
+        //         this.streamer.start();
+
+        //         this.camera.setStreamer(this.streamer);
+        //     }
+
+        //     this.hub.connect(Pi.App.getConfig('asterisk.signal.url'));
+        //     this.hub.event.listen('claimToBe::newMaster', (slaverId) => {
+        //         this.hub.revokeMaster().once(() => {
+        //             this.hub.electedNewMaster(slaverId);
+        //         });
+        //     });
+
+        //     super.viewDidLoad();
+        // }
+
 
         /**
          * TEST SIGNAL
