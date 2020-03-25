@@ -845,48 +845,52 @@ Pi.Constant = Pi.Namespace; Pi.Namespace('Pi.Class', class Class {
     }
 }); (function () {
 
-    var handler = null;
-
     Pi.Namespace('Pi.Interval', class piinterval extends Pi.Class {
 
         static wait(time) {
-            let promise = new Pi.Promise();
-
-            handler = setInterval(() => {
-                promise.resolve.call(promise);
+            const promise = new Pi.Promise();
+            const hw = setInterval(() => {
+                promise.resolve();
             }, time);
 
-            return promise;
+            return new Pi.Interval({ _hw: hw, _promise: promise });
         }
 
-        static clear() {
-            clearInterval(handler);
+        ok(fn, context){
+            this._promise.ok(fn, context);
 
-            return Pi.Interval;
+            return this;
+        }
+
+        clear() {
+            this._promise.clear();
+
+            clearInterval(this._hw);
+
+            return this;
         }
 
     });
 
 })(); (function () {
 
-    var handler = null;
-
     Pi.Namespace('Pi.Timeout', class pitimeout extends Pi.Class {
 
         static wait(time) {
-            let promise = new Pi.Promise();
-
-            handler = setTimeout(function () {
-                promise.resolve.call(promise);
+            const promise = new Pi.Promise();
+            const hw = setTimeout(function () {
+                promise.resolve();
             }, time);
 
-            return promise;
+            return new Pi.Timeout({ _hw: hw, _promise: promise });
         }
 
-        static clear() {
-            clearTimeout(handler)
+        clear() {
+            this._promise.clear();
 
-            return Pi.Timeout;
+            clearTimeout(this._hw);
+
+            return this;
         }
 
     });

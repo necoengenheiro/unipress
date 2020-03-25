@@ -18,7 +18,19 @@ yum.define([
             this.url = url;
 
             this._configure();
+        }
+        
+        connect(){
             this._connect();
+        }
+
+        disconnect(){
+            this.event.clear();
+            
+            this._ws.close();
+            this._promise.clear();
+            
+            this._unlisten();
         }
 
         waitConnection() {
@@ -42,6 +54,23 @@ yum.define([
             this._send(id, message, {
                 type: 'asterisk.unicast'
             });
+        }
+
+        sendConfig(group, config) {
+            config.group = group;
+            this._send(-1, {}, config);
+        }
+
+        getConfig(name) {
+            const promise = new Pi.Promise();
+            const url = Pi.Url.create(this.url);
+            const request = new Pi.Request();
+
+            request.getJson(`https://${url.host()}:8080/group/config/get?name=${name}`).ok((config) => {
+                promise.resolve(config);
+            })
+
+            return promise;
         }
 
         broadcast(message) {
@@ -161,13 +190,15 @@ yum.define([
                 var message = JSON.parse(evt.data);
 
                 if (message.type == 'asterisk.initialize' && !this.isConnected) {
-                    this.id = message.id;
+                    this.id = message.clientId;
 
                     this.isConnected = true;
                     this._promise.resolve();
 
                     this.event.trigger('connected');
                     return;
+                } else if (message.type == 'asterisk.config') { 
+                    this.event.trigger('asterisk.config', message);
                 } else if (message.type == 'asterisk.client.disconnected') {
                     this.event.trigger('client.disconnected', {
                         id: message.from

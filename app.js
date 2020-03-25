@@ -28,12 +28,15 @@ yum.define([
             });
 
             if (this.isAdmin) {
+                this.hub.isRoot = true;
                 this.hub.isMaster = true;
 
                 this.streamer.start();
                 
                 this.camera.setStreamer(this.streamer);
             }
+
+            this.hub.connect(Pi.App.getConfig('asterisk.signal.url'));
 
             super.viewDidLoad();
         }

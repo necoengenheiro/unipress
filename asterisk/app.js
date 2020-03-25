@@ -1,49 +1,91 @@
+const AppName = 'Asterisk WebSocket 1.0.0 =';
 const WebSocketServer = require('ws').Server;
-const https = require('https');
-const fs = require('fs');
+const Https = require('https');
+const File = require('fs');
+const Url = require('url');
+const Pi = require('./pillar.js');
 
-const pkey  = fs.readFileSync('/etc/letsencrypt/live/test.galileu.space/privkey.pem');
-const pcert = fs.readFileSync('/etc/letsencrypt/live/test.galileu.space/fullchain.pem');
+const pkey = File.readFileSync('/etc/letsencrypt/live/test.galileu.space/privkey.pem');
+const pcert = File.readFileSync('/etc/letsencrypt/live/test.galileu.space/fullchain.pem');
 
 const wss = new WebSocketServer({
-    server: https.createServer({ key: pkey, cert: pcert }).listen(775)
+    server: Https.createServer({ key: pkey, cert: pcert }).listen(775)
 });
 
-// const wss = new WebSocketServer({
-//     port: 775
-// });
-
 var clientIncrement = 1;
+var groups = [];
+
+Https.createServer({ key: pkey, cert: pcert }, function (req, res) {
+    const _url = Url.parse(req.url, true);
+
+    if (_url.pathname == '/group/config/get') {
+        if (_url.query.name == null) {
+            res.write(JSON.stringify({ status: 'error', description: 'Parameter group not defined' }));
+            res.end();
+            return;
+        }
+
+        if (_url.query.name.length == 0) {
+            res.write(JSON.stringify({ status: 'error', description: 'Parameter group not defined' }));
+            res.end();
+            return;
+        }
+
+        let group = groups[_url.query.name];
+        if (group == null) {
+            group = {};
+        }
+
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        res.write(JSON.stringify(group));
+        res.end();
+
+        return;
+    }
+
+    res.write(AppName);
+    res.end();
+}).listen(8080);
 
 wss.on('connection', function (client) {
     client.id = clientIncrement++;
 
     client.send(JSON.stringify({
         type: 'asterisk.initialize',
-        id: client.id
+        clientId: client.id
     }));
 
     client.on('message', function (payload) {
         var message = JSON.parse(payload);
 
-        if (message.type == 'asterisk.entergroup') {
+        if (message.type == 'asterisk.config') {
+            if (message.group == null) return;
+
+            groups[message.group] = Pi.Object.extend({}, message, groups[message.group]);
+        } else if (message.type == 'asterisk.entergroup') {
             client.group = message.groupName;
+
             onecast({
                 type: 'asterisk.entergroup',
                 group: client.group,
                 from: client.id
-            }, client);
+            }, client.group, client);
+
         } else if (message.type == 'asterisk.leavegroup') {
+            const group = client.group;
             client.group = null;
+
             onecast({
                 type: 'asterisk.leavegroup',
-                group: client.group,
+                group: group,
                 from: client.id
-            }, client);
+            }, group, client);
+
         } else if (message.type == 'asterisk.broadcast') {
             broadcast(message, client);
         } else if (message.type == 'asterisk.onecast') {
-            onecast(message, client);
+            onecast(message, message.group, client);
         } else if (message.type == 'asterisk.unicast') {
             unicast(message, client);
         }
@@ -55,7 +97,7 @@ wss.on('connection', function (client) {
                 type: 'asterisk.client.disconnected',
                 group: client.group,
                 from: client.id,
-            }, client);
+            }, client.group, client);
         } else {
             broadcast({
                 type: 'asterisk.client.disconnected',
@@ -73,18 +115,20 @@ function broadcast(message, current) {
     })
 }
 
-function onecast(message, current) {
+function onecast(message, group, current) {
+    if (group == null) return;
+
     wss.clients.forEach(client => {
         if (client.id == current.id) return;
-        if (client.group == message.group) {
+        if (client.group == group) {
             sendMessage(message, client);
         }
     });
 }
 
-function unicast(message, current) {
+function unicast(message, current = null) {
     wss.clients.forEach(client => {
-        if (client.id == current.id) return;
+        if (current != null && client.id == current.id) return;
         if (client.id == message.to) {
             sendMessage(message, client);
         }
@@ -96,4 +140,4 @@ function sendMessage(message, client) {
     client.send(JSON.stringify(message));
 }
 
-console.log('Asterisk WebSocket 1.0.0 =');
+console.log(AppName);

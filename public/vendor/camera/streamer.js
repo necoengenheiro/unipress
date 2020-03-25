@@ -7,9 +7,13 @@ yum.define([
         instances() {
             super.instances();
 
-            this.status = Camera.StreamerStatus.STOPPED;
+            this._status = Camera.StreamerStatus.STOPPED;
 
             this._promise = new Pi.Promise();
+        }
+
+        get status(){
+            return this._status;
         }
 
         start(audio = true, video = true) {
@@ -26,7 +30,7 @@ yum.define([
 
             navigator.mediaDevices.getUserMedia(constraints)
                 .then((stream) => {
-                    this.status = Camera.StreamerStatus.PLAYING;
+                    this._status = Camera.StreamerStatus.PLAYING;
                     this._promise.resolve(stream);
                 })
                 .catch((e) => {
@@ -44,7 +48,7 @@ yum.define([
 
             this._promise = new Pi.Promise();
 
-            this.status = Camera.StreamerStatus.STOPPED;
+            this._status = Camera.StreamerStatus.STOPPED;
 
             return this;
         }
