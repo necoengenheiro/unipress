@@ -10,9 +10,6 @@ yum.define([
 
             this._localStreammerPromise = new Pi.Promise();
             this._peers = [];
-            this._masterId = false;
-            this._rootId = false;
-            this._hwIntervals = [];
             this._status = Asterisk.HubStatus.DISCONNECTED;
 
             this.hook = new Pi.Hook();
@@ -35,7 +32,6 @@ yum.define([
 
             this._config();
 
-            this._setRootNegotiation();
             this._enterGroupSlaverNegotiation();
             this._reconnectMasterNegociation();
             this._reconnectSlaverNegociation();
@@ -52,9 +48,6 @@ yum.define([
 
             this._closePeers();
 
-            this._rootId = 0;
-            this._masterId = 0;
-            this._hwIntervals = [];
             this._status = Asterisk.HubStatus.DISCONNECTED;
             this._localStreammerPromise = new Pi.Promise();
         }
@@ -64,29 +57,41 @@ yum.define([
         }
 
         claimToBeMaster() {
-            if (this._rootId) return;
-
-            this.signal.sendTo(this._rootId, {
-                type: 'asterisk.claimToBe.newMaster',
-                slaverId: this.clientId
+            this.signal.getConfig(this.groupName).once((config) => {
+                this.signal.sendTo(config.rootId, {
+                    type: 'asterisk.claimToBe.newMaster',
+                    slaverId: this.clientId
+                });
             });
         }
 
         revokeMaster() {
-            if (this._masterId) return;
+            const promise = new Pi.Promise();
 
-            this.signal.sendTo(this._masterId, {
-                type: 'asterisk.revoke.master',
-                slaverId: this.clientId
+            this.signal.getConfig(this.groupName).once((config) => {
+                if (config.masterId == this.clientId) {
+                    this.signal.event.trigger('asterisk.revoke.master')
+                    return;
+                }
+
+                this.signal.sendTo(config.masterId, {
+                    type: 'asterisk.revoke.master'
+                });
+
+                promise.resolve();
             });
+
+            return promise;
         }
 
         electedNewMaster(masterId) {
-            this._masterId = masterId;
+            this.signal.sendConfig(this.groupName, {
+                type: 'asterisk.config',
+                masterId: masterId
+            });
 
-            this.signal.sendTo(this._masterId, {
-                type: 'asterisk.elected.newMaster',
-                slaverId: this.clientId
+            this.signal.sendTo(masterId, {
+                type: 'asterisk.elected.newMaster'
             });
         }
 
@@ -109,13 +114,6 @@ yum.define([
                 }
 
                 this.signal.enterGroup(this.groupName);
-
-                this._status = Asterisk.HubStatus.CONNECTED;
-            });
-
-            this.signal.event.listen('asterisk.config', (config) => {
-                if (config.rootId) this._rootId = config.rootId;
-                if (config.masterId) this._masterId = config.masterId;
             });
         }
 
@@ -141,6 +139,8 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.revoke.master', () => {
+                if (!this.isMaster) return;
+
                 this.isMaster = false;
 
                 this._localStreammerPromise.once((streamer) => {
@@ -153,6 +153,8 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.elected.newMaster', () => {
+                this._closePeers();
+
                 this._localStreammerPromise.once((streamer) => {
                     if (streamer.status == Camera.StreamerStatus.STOPPED) {
                         streamer.start();
@@ -168,6 +170,8 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.slaver.pairing.syn', (message) => {
+                this._closePeers();
+                
                 const peer = this._connectPeer(message.masterId, this.clientId);
 
                 this.signal.sendTo(message.masterId, {
@@ -193,35 +197,6 @@ yum.define([
 
         _reconnectSlaverNegociation() {
 
-        }
-
-        _setRootNegotiation() {
-            this.signal.event.listen('enter::group', (slaver) => {
-                if (this.isRoot) {
-                    this._hwIntervals[slaver.id] = Pi.Interval.wait(5000).ok(() => {
-                        this.signal.sendTo(slaver.id, {
-                            type: 'asterisk.slaver.setroot',
-                            rootId: this.clientId
-                        });
-                    });
-                }
-            });
-
-            this.signal.event.listen('asterisk.slaver.setroot', (message) => {
-                this._rootId = message.rootId;
-
-                this.signal.sendTo(this._rootId, {
-                    type: 'asterisk.root.ack',
-                    slaverId: this.clientId
-                });
-            });
-
-            this.signal.event.listen('asterisk.root.ack', (message) => {
-                if (this._hwIntervals[message.slaverId] == null) return;
-
-                this._hwIntervals[message.slaverId].clear();
-                delete this._hwIntervals[message.slaverId];
-            });
         }
 
         _enterGroupSlaverNegotiation() {

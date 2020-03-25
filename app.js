@@ -18,7 +18,7 @@ yum.define([
 
         viewDidLoad() {
             this.streamer = new Camera.Streamer();
-            
+
             this.camera = new Camera.View();
             this.camera.render(this.view.element);
 
@@ -32,11 +32,16 @@ yum.define([
                 this.hub.isMaster = true;
 
                 this.streamer.start();
-                
+
                 this.camera.setStreamer(this.streamer);
             }
 
             this.hub.connect(Pi.App.getConfig('asterisk.signal.url'));
+            this.hub.event.listen('claimToBe::newMaster', (slaverId) => {
+                this.hub.revokeMaster().once(() => {
+                    this.hub.electedNewMaster(slaverId);
+                });
+            });
 
             super.viewDidLoad();
         }
