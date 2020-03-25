@@ -44,15 +44,17 @@ Https.createServer({ key: pkey, cert: pcert }, function (req, res) {
         return;
     }
 
-    if (_url.pathname == '/clients/get') { 
+    if (_url.pathname == '/clients/get') {
         var clients = [];
 
-        wss.clients.forEach(client => { 
-            clients.push({
-                id: client.id,
-                name: client.name,
-                group: client.group
-            });
+        wss.clients.forEach(client => {
+            if (client.readyState == client.OPEN) {
+                clients.push({
+                    id: client.id,
+                    name: client.name,
+                    group: client.group
+                });
+            }
         });
 
         res.setHeader("Access-Control-Allow-Origin", "*");
@@ -81,7 +83,7 @@ wss.on('connection', function (client) {
         if (message.type == 'asterisk.config') {
             if (message.group == null) return;
 
-            groups[message.group] = Pi.Object.extend({}, message, groups[message.group]);
+            groups[message.group] = Pi.Object.extend({}, groups[message.group], message);
         } else if (message.type == 'asterisk.entergroup') {
             client.group = message.groupName;
 

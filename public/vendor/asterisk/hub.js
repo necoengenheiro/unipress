@@ -56,12 +56,18 @@ yum.define([
             this._localStreammerPromise.resolve(streamer);
         }
 
-        claimToBeMaster() {
+        claimToBeMaster(slaverId) {
             this.signal.getConfig(this.groupName).once((config) => {
-                this.signal.sendTo(config.rootId, {
-                    type: 'asterisk.claimToBe.newMaster',
-                    slaverId: this.clientId
-                });
+                if (config.rootId == this.clientId) {
+                    this.signal.event.trigger('asterisk.claimToBe.newMaster', {
+                        slaverId: slaverId
+                    });
+                } else {
+                    this.signal.sendTo(config.rootId, {
+                        type: 'asterisk.claimToBe.newMaster',
+                        slaverId: slaverId
+                    });
+                }
             });
         }
 
@@ -71,12 +77,11 @@ yum.define([
             this.signal.getConfig(this.groupName).once((config) => {
                 if (config.masterId == this.clientId) {
                     this.signal.event.trigger('asterisk.revoke.master')
-                    return;
+                } else {
+                    this.signal.sendTo(config.masterId, {
+                        type: 'asterisk.revoke.master'
+                    });
                 }
-
-                this.signal.sendTo(config.masterId, {
-                    type: 'asterisk.revoke.master'
-                });
 
                 promise.resolve();
             });
@@ -157,6 +162,7 @@ yum.define([
             });
 
             this.signal.event.listen('asterisk.elected.newMaster', () => {
+                this.isMaster = true;
                 this._closePeers();
 
                 this._localStreammerPromise.once((streamer) => {
