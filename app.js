@@ -49,7 +49,7 @@ yum.define([
                     continue;
                 }
 
-                video = this._videoDevices[i]
+                video = this._videoDevices[i];
             }
 
             this.currentVideo = video || this.currentVideo;
@@ -60,6 +60,8 @@ yum.define([
 
             listen({
                 '#changeCamera click': function () {
+                    this.toggleVideoDevice();
+                    this.streamer.stop();
                     this.streamer = new Camera.Streamer();
                     this.camera.setStreamer(this.streamer);
 
