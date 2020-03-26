@@ -111,6 +111,14 @@ yum.define([
                 this.connect();
             }
 
+            this._peer.onicegatheringstatechange = (e) => {
+                console.log(e);
+            }
+
+            this._peer.onicegatheringstatechange = (e) => {
+                console.log(e);
+            }
+
             this._peer.onconnectionstatechange = (e) => {
                 if (e.type == 'connectionstatechange') {
                     if (this._peer.connectionState == 'disconnected') {
