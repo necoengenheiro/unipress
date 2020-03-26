@@ -133,7 +133,7 @@ yum.define([
                                 this._peer.setLocalDescription(answer, () => {
                                     setTimeout(() => {
                                         for (let i = 0; i < this._iceCanditates.length; i++) {
-                                            this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i]));
+                                            this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i])).catch(e => console.error(e));
                                         }
 
                                         Asterisk.Hub.signal.sendTo(this.A, {
