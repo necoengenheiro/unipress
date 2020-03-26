@@ -143,7 +143,7 @@ yum.define([
                                         this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i])).catch(e => console.error(e));
                                     }
 
-                                    this._promiceStatus.once((status) => {
+                                    this._promiceStatus.ok((status) => {
                                         if (status == 'ice::gather::complete') {
                                             Asterisk.Hub.signal.sendTo(this.A, {
                                                 type: 'peer.sdp',
