@@ -26,7 +26,8 @@ yum.define([
 
         disconnect(){
             this.event.clear();
-            
+            this.isConnected = false;
+
             this._ws.close();
             this._promise.clear();
             
@@ -123,31 +124,32 @@ yum.define([
         }
 
         _tryConnect(url) {
+            this._unlisten();
+            this._ws = null;
             this._ws = new WebSocket(url);
-            
             this._listen();
         }
 
         _listen() {
-            this._unlisten();
-
             this._onOpen = () => {
-
+                
             };
 
             this._onClose = () => {
                 if (this.isConnected) {
                     this.event.trigger('disconnected');
+                } else {
+                    return;
                 }
 
                 this.isConnected = false;
-                this._connect();
+                this._hw = setTimeout(() => {
+                    this._connect();
+                }, 3000);
             };
 
-            this._onError = (e) => {
-                setTimeout(() => {
-                    this._unlisten();
-                    this._ws = null;
+            this._onError = () => {
+                this._hw = setTimeout(() => {
                     this._connect();
                 }, 3000);
             };
