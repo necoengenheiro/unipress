@@ -174,6 +174,7 @@ yum.define([
                                 this.event.trigger('critical', e);
                             });
                         } else if (this._peer.remoteDescription.type == 'answer') {
+                            this._peer.setRemoteDescription(new RTCSessionDescription(message.data));
                             this._promiseConnect.resolve();
                             this.event.trigger('connected');
                         }
