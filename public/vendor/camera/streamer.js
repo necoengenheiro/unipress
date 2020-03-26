@@ -35,7 +35,7 @@ yum.define([
                 })
                 .error((e) => {
                     console.log(e);
-                    this.event.trigger('critical', e);
+                    this._promise.reject(e);
                 });
 
             return this;
