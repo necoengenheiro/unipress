@@ -46,7 +46,19 @@ yum.define([
                 });
             });
 
+            this.initCube();
+
             super.viewDidLoad();
+        }
+
+        initCube(){
+            const wh = window.innerHeight;
+            const ch = 600;
+            const mt = (wh - ch) / 2;
+
+            if (mt > 0) {
+                this.view.cubeContainer.style.marginTop = mt + 'px';
+            }
         }
 
         events(listen) {
