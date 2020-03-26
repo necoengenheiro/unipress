@@ -45,6 +45,12 @@ yum.define([
             }
         }
 
+        enableAudio(b) {
+            if (this._video == null) return;
+
+            this._video.muted = !b;
+        }
+
         setStreamer(streamer) {
             streamer.getStream().once((stream) => {
                 this._createVideoElement();
