@@ -17,89 +17,89 @@ yum.define([
         }
 
         viewDidLoad() {
-            this.initDeviceDefault();
+            this.streamer = new Camera.Streamer();
 
             this.camera = new Camera.View();
             this.camera.render(this.view.element);
 
-            this.streamer = new Camera.Streamer();
-            this.streamer.start();
+            this.hub.setStreamer(this.streamer);
+            this.hub.event.listen('new::streamming', (streamer) => {
+                this.camera.setStreamer(streamer);
+            });
 
-            this.camera.setStreamer(this.streamer);
+            if (this.isAdmin) {
+                this.hub.isRoot = true;
+                this.hub.isMaster = true;
+
+                this.streamer.start();
+
+                this.camera.setStreamer(this.streamer);
+            }
+
+            this.hub.connect(Pi.App.getConfig('asterisk.signal.url'));
+            this.hub.event.listen('claimToBe::newMaster', (slaverId) => {
+                this.hub.revokeMaster().once(() => {
+                    this.hub.electedNewMaster(slaverId);
+                });
+            });
 
             super.viewDidLoad();
         }
 
-        initDeviceDefault() {
-            Camera.Devices.getDefault().once((audio, video) => {
-                this.currentAudio = audio;
-                this.currentVideo = video;
-            });
-
-            Camera.Devices.load().once((devices) => {
-                this._videoDevices = devices.getVideos();
-            });
-        }
-
-        toggleVideoDevice() {
-            var video = null;
-
-            for (let i = 0; i < this._videoDevices.length; i++) {
-                if (this.currentVideo.label == this._videoDevices[i].label) {
-                    continue;
-                }
-
-                video = this._videoDevices[i];
-            }
-
-            this.currentVideo = video || this.currentVideo;
-        }
-
-        events(listen) {
-            super.events(listen);
-
-            listen({
-                '#changeCamera click': function () {
-                    this.toggleVideoDevice();
-                    this.streamer.stop();
-                    this.streamer = new Camera.Streamer();
-                    this.camera.setStreamer(this.streamer);
-
-                    this.streamer.start(true, { id: this.currentVideo.deviceId });
-                }
-            });
-        }
 
         // viewDidLoad() {
-        //     this.streamer = new Camera.Streamer();
+        //     this.initDeviceDefault();
 
         //     this.camera = new Camera.View();
         //     this.camera.render(this.view.element);
 
-        //     this.hub.setStreamer(this.streamer);
-        //     this.hub.event.listen('new::streamming', (streamer) => {
-        //         this.camera.setStreamer(streamer);
-        //     });
+        //     this.streamer = new Camera.Streamer();
+        //     this.streamer.start();
 
-        //     if (this.isAdmin) {
-        //         this.hub.isRoot = true;
-        //         this.hub.isMaster = true;
-
-        //         this.streamer.start();
-
-        //         this.camera.setStreamer(this.streamer);
-        //     }
-
-        //     this.hub.connect(Pi.App.getConfig('asterisk.signal.url'));
-        //     this.hub.event.listen('claimToBe::newMaster', (slaverId) => {
-        //         this.hub.revokeMaster().once(() => {
-        //             this.hub.electedNewMaster(slaverId);
-        //         });
-        //     });
+        //     this.camera.setStreamer(this.streamer);
 
         //     super.viewDidLoad();
         // }
 
+        // initDeviceDefault() {
+        //     Camera.Devices.getDefault().once((audio, video) => {
+        //         this.currentAudio = audio;
+        //         this.currentVideo = video;
+        //     });
+
+        //     Camera.Devices.load().once((devices) => {
+        //         this._videoDevices = devices.getVideos();
+        //     });
+        // }
+
+        // toggleVideoDevice() {
+        //     var video = null;
+
+        //     for (let i = 0; i < this._videoDevices.length; i++) {
+        //         if (this.currentVideo.label == this._videoDevices[i].label) {
+        //             continue;
+        //         }
+
+        //         video = this._videoDevices[i];
+        //     }
+
+        //     this.currentVideo = video || this.currentVideo;
+        // }
+
+        // events(listen) {
+        //     super.events(listen);
+
+        //     listen({
+        //         '#changeCamera click': function () {
+        //             this.toggleVideoDevice();
+        //             this.streamer.stop();
+        //             this.streamer = new Camera.Streamer();
+        //             this.camera.setStreamer(this.streamer);
+
+        //             this.streamer.start(true, { id: this.currentVideo.deviceId });
+        //         }
+        //     });
+        // }
 
         /**
          * TEST SIGNAL
