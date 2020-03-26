@@ -33,8 +33,6 @@ yum.define([
             this._config();
 
             this._enterGroupSlaverNegotiation();
-            this._reconnectMasterNegociation();
-            this._reconnectSlaverNegociation();
             this._claimToBeMasterNegociation();
         }
 
@@ -120,6 +118,11 @@ yum.define([
                         type: 'asterisk.config',
                         masterId: this.clientId
                     });
+
+                    this.signal.onecast(this.groupName, {
+                        type: 'asterisk.slaver.pairing.syn',
+                        masterId: this.clientId
+                    });
                 }
 
                 this.signal.enterGroup(this.groupName);
@@ -203,14 +206,6 @@ yum.define([
                     peer.setStreamer(streamer);
                 });
             })
-        }
-
-        _reconnectMasterNegociation() {
-
-        }
-
-        _reconnectSlaverNegociation() {
-
         }
 
         _enterGroupSlaverNegotiation() {
