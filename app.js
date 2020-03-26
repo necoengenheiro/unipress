@@ -19,8 +19,11 @@ yum.define([
         viewDidLoad() {
             this.streamer = new Camera.Streamer();
 
-            this.camera = new Camera.View();
-            this.camera.render(this.view.element);
+            this.camera = new Camera.View({
+                className: 'app-center-video'
+            });
+
+            this.camera.render(this.view.body);
 
             this.hub.setStreamer(this.streamer);
             this.hub.event.listen('new::streamming', (streamer) => {
@@ -44,6 +47,34 @@ yum.define([
             });
 
             super.viewDidLoad();
+        }
+
+        events(listen) {
+            super.events(listen);
+
+            listen({
+                '#btnleft click'() {
+                    this.view.front.removeClass().addClass('cube-face cube-front cube-front-to-right');
+                    this.view.left.removeClass().addClass('cube-face cube-left cube-left-to-front');
+                },
+
+                '#btnright click'() {
+                    this.view.front.removeClass().addClass('cube-face cube-front cube-front-to-left');
+                    this.view.right.removeClass().addClass('cube-face cube-right cube-right-to-front');
+                },
+
+                '#btnrightToFront click'() {
+                    this.view.front.removeClass().addClass('cube-face cube-front');
+                    this.view.right.removeClass().addClass('cube-face cube-right');
+                    this.view.right.removeClass().addClass('cube-face cube-right');
+                },
+
+                '#btnleftToFront click'() {
+                    this.view.front.removeClass().addClass('cube-face cube-front');
+                    this.view.left.removeClass().addClass('cube-face cube-left');
+                    this.view.right.removeClass().addClass('cube-face cube-right');
+                }
+            });
         }
 
 

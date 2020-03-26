@@ -1,0 +1,25 @@
+html, body{
+    background: rgb(38, 38, 38);
+    margin: 0px;
+    padding: 0px;
+}
+
+.app-center-container{
+    width: 400px;
+    margin: auto;
+    padding: 0px;
+    position: absolute;
+    left: calc(50% - 200px);
+    bottom: 0px;
+    top: 0px;
+    /* background: #211f1f; */
+    /* box-shadow: 0px 0px 28px rgba(53, 53, 53, 1); */
+}
+
+.app-center-video{
+    position: absolute;
+    width: 100%;
+    margin: auto;
+    top: 0px;
+    bottom: 0px;
+}

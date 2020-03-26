@@ -10,6 +10,7 @@ yum.define([
             this.muted = true;
             this.autoplay = true;
             this.loop = true;
+            this.className = false;
         }
 
         viewDidLoad() {
@@ -27,6 +28,9 @@ yum.define([
             this.view.element.appendChild(this._video);
 
             this._video.classList.add('camera-view-video');
+            if (this.className) {
+                this._video.classList.add(this.className);
+            }
 
             if (this.muted) {
                 this._video.muted = this.muted;

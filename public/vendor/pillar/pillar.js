@@ -856,7 +856,7 @@ Pi.Constant = Pi.Namespace; Pi.Namespace('Pi.Class', class Class {
             return new Pi.Interval({ _hw: hw, _promise: promise });
         }
 
-        ok(fn, context){
+        ok(fn, context) {
             this._promise.ok(fn, context);
 
             return this;
@@ -1278,7 +1278,7 @@ Pi.Namespace('Pi.Promise', class pipromise extends Pi.Class {
         }
     }
 
-    callOnce(){
+    callOnce() {
         this.isOk = true;
         this.call(this.cbOnce, this.argOk);
         this.cbOnce = [];
@@ -1332,7 +1332,7 @@ Pi.Namespace('Pi.Promise', class pipromise extends Pi.Class {
         return this;
     }
 
-    once(cb, context){
+    once(cb, context) {
         this.cbOnce.push({ cb: cb, context: context });
 
         if (this.isOk) {
@@ -1342,7 +1342,7 @@ Pi.Namespace('Pi.Promise', class pipromise extends Pi.Class {
         return this;
     }
 
-    onceReady(cb, context){
+    onceReady(cb, context) {
         if (this.isOk) {
             this.cbOnce.push({ cb: cb, context: context });
             this.callOnce();
@@ -3642,6 +3642,13 @@ window.onhashchange = function () {
     };
 
     HTMLElement.prototype.removeClass = function (name) {
+        if (name == null) {
+            this.query().removeClass();
+            // this.classList.forEach(_name => {
+            //     this.classList.remove(_name);
+            // });
+            return this;
+        }
         let list = name.split(' ');
 
         for (let i = list.length - 1; i >= 0; i--) {
