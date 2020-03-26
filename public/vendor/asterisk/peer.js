@@ -122,7 +122,9 @@ yum.define([
                 console.log(`IceConnectionStateChange ${this._peer.iceConnectionState}`);
             }
 
-            this._peer.onicegatheringstatechange = () => {
+            this._peer.onicegatheringstatechange = () =>
+                console.log(`ConnectionStateChange ${this._peer.iceGatheringState}`); {
+                
                 if (this._peer.iceGatheringState == 'gathering') {
                     this._promiseIceGathering.resolve();
                 }
@@ -139,7 +141,6 @@ yum.define([
             }
 
             this._peer.onconnectionstatechange = (e) => {
-                console.log(`ConnectionStateChange ${this._peer.iceGatheringState}`);
                 console.log(`ConnectionStateChange ${this._peer.connectionState}`);
 
                 if (e.type == 'connectionstatechange') {
@@ -183,9 +184,10 @@ yum.define([
 
                     });
                 } else if (message.type == 'peer.candidate') {
-                    console.log('add iceCanditates');
+                    console.log('set iceCanditates array');
                     this._iceCanditates = message.canditates;
                     this._promiseIceGathering.once(() => {
+                        console.log('add IceCanditates');
                         for (let i = 0; i < this._iceCanditates.length; i++) {
                             this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i]));
                         }
