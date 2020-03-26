@@ -23,6 +23,8 @@ yum.define([
             this._iceCanditates = [];
             this._promise = new Pi.Promise();
             this._promiseConnect = new Pi.Promise();
+            this._promiseIceGathering = new Pi.Promise();
+            this._promiseIceCanditatesReceived = new Pi.Promise();
 
             this.config = {
                 servers: [
@@ -45,16 +47,17 @@ yum.define([
         }
 
         connect() {
-            console.log('createOffer');
             this._peer.createOffer((desc) => {
                 var offer = new RTCSessionDescription(desc);
                 console.log('setLocalDescription');
                 this._peer.setLocalDescription(offer, () => {
-                    console.log('send peer.sdp');
-                    Asterisk.Hub.signal.sendTo(this.B, {
-                        type: 'peer.sdp',
-                        id: this.getId(),
-                        data: this._peer.localDescription
+                    this._promiseIceCanditatesReceived.once(() => {
+                        console.log('send peer.sdp');
+                        Asterisk.Hub.signal.sendTo(this.B, {
+                            type: 'peer.sdp',
+                            id: this.getId(),
+                            data: this._peer.localDescription
+                        });
                     });
                 });
             }, (msg) => {
@@ -72,6 +75,8 @@ yum.define([
 
             this._promise.clear();
             this._promiseConnect.clear();
+            this._promiseIceGathering.clear();
+            this._promiseIceCanditatesReceived.clear();
 
             this.event.clear();
 
@@ -104,14 +109,10 @@ yum.define([
         _listenPeers() {
             this._peer.onicecandidate = (evt) => {
                 if (!evt || !evt.candidate) return;
-                
-                console.log('receive iceCanditates');
 
-                Asterisk.Hub.signal.sendTo(this.B, {
-                    type: 'peer.candidate',
-                    id: this.getId(),
-                    data: evt.candidate
-                });
+                this._iceCanditates.push(evt.candidate);
+
+                console.log('receive new iceCanditates');
             }
 
             this._peer.onnegotiationneeded = () => {
@@ -119,12 +120,26 @@ yum.define([
                 this.connect();
             }
 
-            this._peer.oniceconnectionstatechange = (e) => {
+            this._peer.oniceconnectionstatechange = () => {
                 console.log(`IceConnectionStateChange ${this._peer.iceConnectionState}`);
             }
 
-            this._peer.onicegatheringstatechange = (e) => {
+            this._peer.onicegatheringstatechange = () => {
                 console.log(`IceGatheringStateChange ${this._peer.iceGatheringState}`);
+
+                if (this._peer.iceGatheringState == 'new') {
+                    this._promiseIceGathering.resolve();
+                }
+
+                if (this._peer.iceGatheringState == 'complete') {
+                    Asterisk.Hub.signal.sendTo(this.B, {
+                        type: 'peer.candidate',
+                        id: this.getId(),
+                        canditates: this._iceCanditates
+                    });
+
+                    this._promiseIceCanditatesReceived.resolve(this._iceCanditates);
+                }
             }
 
             this._peer.onconnectionstatechange = (e) => {
@@ -153,12 +168,6 @@ yum.define([
                             this._peer.createAnswer().then((answer) => {
                                 console.log('setLocalDescription');
                                 this._peer.setLocalDescription(answer, () => {
-                                    console.log(`addIceCandidate ${this._iceCanditates.length}`);
-
-                                    for (let i = 0; i < this._iceCanditates.length; i++) {
-                                        this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i])).catch(e => console.error(e));
-                                    }
-                                    
                                     Asterisk.Hub.signal.sendTo(this.A, {
                                         type: 'peer.sdp',
                                         id: this.getId(),
@@ -177,8 +186,16 @@ yum.define([
 
                     });
                 } else if (message.type == 'peer.candidate') {
-                    console.log('push iceCanditates')
-                    this._iceCanditates.push(message.data);
+                    console.log('set iceCanditates array');
+                    this._iceCanditates = message.canditates;
+                    console.log('add IceCanditates');
+                    for (let i = 0; i < this._iceCanditates.length; i++) {
+                        this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i]));
+                    }
+
+                    this._promiseIceGathering.once(() => {
+
+                    });
                 }
             };
 
