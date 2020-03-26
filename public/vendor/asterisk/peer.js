@@ -124,9 +124,9 @@ yum.define([
                 console.log(`IceConnectionStateChange ${this._peer.iceConnectionState}`);
             }
 
-            this._peer.onicegatheringstatechange = () =>
-                console.log(`IceGatheringStateChange ${this._peer.iceGatheringState}`); {
-                
+            this._peer.onicegatheringstatechange = () => {
+                console.log(`IceGatheringStateChange ${this._peer.iceGatheringState}`);
+
                 if (this._peer.iceGatheringState == 'gathering') {
                     this._promiseIceGathering.resolve();
                 }
