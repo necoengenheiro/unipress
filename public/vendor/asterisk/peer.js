@@ -49,8 +49,10 @@ yum.define([
         connect() {
             this._peer.createOffer((desc) => {
                 var offer = new RTCSessionDescription(desc);
+                console.log('setLocalDescription');
                 this._peer.setLocalDescription(offer, () => {
                     this._promiseIceCanditates.once(() => {
+                        console.log('send peer.sdp');
                         Asterisk.Hub.signal.sendTo(this.B, {
                             type: 'peer.sdp',
                             id: this.getId(),
@@ -123,7 +125,7 @@ yum.define([
             }
 
             this._peer.onicegatheringstatechange = () =>
-                console.log(`ConnectionStateChange ${this._peer.iceGatheringState}`); {
+                console.log(`IceGatheringStateChange ${this._peer.iceGatheringState}`); {
                 
                 if (this._peer.iceGatheringState == 'gathering') {
                     this._promiseIceGathering.resolve();
