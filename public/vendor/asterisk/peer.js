@@ -23,6 +23,7 @@ yum.define([
             this._iceCanditates = [];
             this._promise = new Pi.Promise();
             this._promiseConnect = new Pi.Promise();
+            this._promiseIceCanditatesGathering = new Pi.Promise();
 
             this.config = {
                 servers: [
@@ -72,6 +73,7 @@ yum.define([
 
             this._promise.clear();
             this._promiseConnect.clear();
+            this._promiseIceCanditatesGathering.clear();
 
             this.event.clear();
 
@@ -104,7 +106,7 @@ yum.define([
         _listenPeers() {
             this._peer.onicecandidate = (evt) => {
                 if (!evt || !evt.candidate) return;
-                
+
                 console.log('receive iceCanditates');
 
                 Asterisk.Hub.signal.sendTo(this.B, {
@@ -125,6 +127,10 @@ yum.define([
 
             this._peer.onicegatheringstatechange = (e) => {
                 console.log(`IceGatheringStateChange ${this._peer.iceGatheringState}`);
+
+                if (this._peer.iceGatheringState == 'complete') {
+                    this._promiseIceCanditatesGathering.resolve();
+                }
             }
 
             this._peer.onconnectionstatechange = (e) => {
@@ -162,11 +168,12 @@ yum.define([
                                     for (let i = 0; i < this._iceCanditates.length; i++) {
                                         this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i])).catch(e => console.error(e));
                                     }
-                                    
-                                    Asterisk.Hub.signal.sendTo(this.A, {
-                                        type: 'peer.sdp',
-                                        id: this.getId(),
-                                        data: this._peer.localDescription
+                                    this._promiseIceCanditatesGathering.once(() => {
+                                        Asterisk.Hub.signal.sendTo(this.A, {
+                                            type: 'peer.sdp',
+                                            id: this.getId(),
+                                            data: this._peer.localDescription
+                                        });
                                     });
                                 });
                             }).catch((e) => {
@@ -174,7 +181,6 @@ yum.define([
                                 this.event.trigger('critical', e);
                             });
                         } else if (this._peer.remoteDescription.type == 'answer') {
-                            this._peer.setRemoteDescription(new RTCSessionDescription(message.data));
                             this._promiseConnect.resolve();
                             this.event.trigger('connected');
                         }
