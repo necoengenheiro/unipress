@@ -132,7 +132,7 @@ yum.define([
 
         _listen() {
             this._onOpen = () => {
-                
+
             };
 
             this._onClose = () => {
@@ -162,6 +162,8 @@ yum.define([
         }
 
         _unlisten() {
+            if (this._ws == null) return;
+            
             if (this._onOpen) this._ws.removeEventListener('open', this._onOpen);
             if (this._onClose) this._ws.removeEventListener('close', this._onClose);
             if (this._onError) this._ws.removeEventListener('error', this._onError);
