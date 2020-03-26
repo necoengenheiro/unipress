@@ -155,6 +155,10 @@ yum.define([
                                 this._peer.setLocalDescription(answer, () => {
                                     console.log(`addIceCandidate ${this._iceCanditates.length}`);
 
+                                    console.log(`-> ConnectionState ${this._peer.connectionState}`);
+                                    console.log(`-> IceGatheringState ${this._peer.iceGatheringState}`);
+                                    console.log(`-> IceConnectionState ${this._peer.iceConnectionState}`);
+
                                     for (let i = 0; i < this._iceCanditates.length; i++) {
                                         this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i])).catch(e => console.error(e));
                                     }
