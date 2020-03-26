@@ -131,7 +131,7 @@ yum.define([
                         if (this._peer.remoteDescription.type === 'offer') {
                             this._peer.createAnswer().then((answer) => {
                                 this._peer.setLocalDescription(answer, () => {
-                                    setTimeout(() => {
+                                    // setTimeout(() => {
                                         for (let i = 0; i < this._iceCanditates.length; i++) {
                                             this._peer.addIceCandidate(new RTCIceCandidate(this._iceCanditates[i])).catch(e => console.error(e));
                                         }
@@ -141,7 +141,7 @@ yum.define([
                                             id: this.getId(),
                                             data: this._peer.localDescription
                                         });
-                                    }, 1000);
+                                    // }, 1000);
                                 });
                             }).catch((e) => {
                                 console.log(e);
